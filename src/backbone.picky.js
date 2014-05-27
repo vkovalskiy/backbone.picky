@@ -34,7 +34,11 @@ Backbone.Picky = (function (Backbone, _) {
       model = model || this.selected;
       if (this.selected !== model){ return; }
 
-      this.selected.deselect();
+      this.selected.deselect({
+        suppressCollectionEvent: true
+      });
+      // only trigger deselect event if model is from different
+      // collection, otherwise - event was already called by model
       this.trigger("deselect:one", this.selected);
       delete this.selected;
     }
@@ -72,7 +76,9 @@ Backbone.Picky = (function (Backbone, _) {
       if (!this.selected[model.cid]) { return; }
 
       delete this.selected[model.cid];
-      model.deselect();
+      model.deselect({
+        suppressCollectionEvent: true
+      });
       calculateSelectedLength(this);
     },
 
@@ -127,13 +133,13 @@ Backbone.Picky = (function (Backbone, _) {
 
     // Deselect this model, and tell our
     // collection that we're deselected
-    deselect: function () {
+    deselect: function (params) {
       if (!this.selected) { return; }
 
       this.selected = false;
       this.trigger("deselected", this);
 
-      if (this.collection) {
+      if (this.collection && !(params || {}).suppressCollectionEvent) {
         this.collection.deselect(this);
       }
     },
